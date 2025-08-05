@@ -3,7 +3,7 @@ name: Send Discord Performance Review Reminder
 on:
   schedule:
     # 10 AM and 3 PM UTC (which is 11 AM and 4 PM WAT) every day in August
-    - cron: '0 9 * * *'   # 9:00 AM UTC
+    - cron: '0 10 * * *'   # 9:00 AM UTC
     - cron: '0 15 * * *'  # 3:00 PM UTC
   workflow_dispatch:
 
