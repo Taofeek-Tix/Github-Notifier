@@ -40,7 +40,7 @@ jobs:
           👥 Manager-employee review discussions to be completed by: Thursday, August 14, 2025 11:59 PM
           📣 Promotions & raise announcements: August ALL HANDS
 
-          The form will automatically lock on the date and time above. 
+          The form will automatically lock on the date and time above.
 
           Remember, this is an opportunity to reflect on your growth, give and receive feedback, and plan for what’s next.
           EOF
@@ -50,8 +50,7 @@ jobs:
           echo "Payload:"
           echo "$JSON"
 
-          RESPONSE=$(curl -s -w "%{http_code}" -o response.txt -H "Content-Type: application/json" \
-            -X POST -d "$JSON" "$DISCORD_WEBHOOK_URL")
+          RESPONSE=$(curl -s -w "%{http_code}" -o response.txt -H "Content-Type: application/json"             -X POST -d "$JSON" "$DISCORD_WEBHOOK_URL")
 
           echo "HTTP response: $RESPONSE"
           cat response.txt
@@ -64,3 +63,4 @@ jobs:
           fi
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          
