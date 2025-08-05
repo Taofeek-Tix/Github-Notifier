@@ -8,13 +8,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  send_reminder:
+  send_discord_message:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up environment
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Send message to Discord
         run: |
+          set -e
+
           TODAY=$(date -u +%Y-%m-%d)
+          echo "Today's date: $TODAY"
           CUTOFF="2025-08-09"
 
           if [[ "$TODAY" > "$CUTOFF" ]]; then
@@ -22,29 +28,39 @@ jobs:
             exit 0
           fi
 
-          read -r -d '' MESSAGE <<'EOF'
-          Good Day @everyone
+          MESSAGE=$(cat <<EOF
+Good Day @everyone
 
-          As announced last week, our semi-annual performance review cycle is now live.
+As announced last week, our semi-annual performance review cycle is now live.
 
-          Here’s what you need to do:
-          Complete your self-review → [LINK](https://forms.gle/Pe9Mmc6gxWZPr2Hb8)
-          Managers, complete your reviews →  [LINK](https://forms.gle/zV1A5QSESHdfuWp3A)
+Here’s what you need to do:
+Complete your self-review → [LINK](https://forms.gle/Pe9Mmc6gxWZPr2Hb8)
+Managers, complete your reviews →  [LINK](https://forms.gle/zV1A5QSESHdfuWp3A)
 
-          Please see below for key deadlines:
+Please see below for key deadlines:
 
-          🗓️ Self-reviews due: Friday, August 8, 2025 11:59 PM
-          👥 Manager-employee review discussions to be completed by: Thursday, August 14, 2025 11:59 PM
-          📣 Promotions & raise announcements: August ALL HANDS
+🗓️ Self-reviews due: Friday, August 8, 2025 11:59 PM
+👥 Manager-employee review discussions to be completed by: Thursday, August 14, 2025 11:59 PM
+📣 Promotions & raise announcements: August ALL HANDS
 
-          The form will automatically lock on the date and time above. 
+The form will automatically lock on the date and time above. 
 
-          Remember, this is an opportunity to reflect on your growth, give and receive feedback, and plan for what’s next.
-          EOF
+Remember, this is an opportunity to reflect on your growth, give and receive feedback, and plan for what’s next.
+EOF
+)
 
           JSON=$(jq -n --arg content "$MESSAGE" '{content: $content}')
+          echo "Payload:"
+          echo "$JSON"
 
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "$JSON" \
-               ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RESPONSE=$(curl -s -w "%{http_code}" -o response.txt -H "Content-Type: application/json"             -X POST             -d "$JSON"             "${{ secrets.DISCORD_WEBHOOK_URL }}")
+
+          echo "HTTP response: $RESPONSE"
+          cat response.txt
+
+          if [ "$RESPONSE" -ne 204 ]; then
+            echo "Discord webhook failed"
+            exit 1
+          else
+            echo "Message posted successfully"
+          fi
